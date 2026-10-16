@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>祁煜的养成小屋</title>
+<style>
+  * { box-sizing: border-box; font-family: system-ui, "Microsoft YaHei", sans-serif; }
+  body {
+    background: #f8f4ff;
+    max-width: 460px;
+    margin: 20px auto;
+    padding: 15px;
+    transition: background 0.4s ease;
+  }
+  .box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.08);
+  }
+  h2 {
+    text-align: center;
+    margin: 0 0 12px;
+    color: #6b4f9b;
+  }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    margin: 10px auto;
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 50% 90%, #fff7d6 0%, #ffe9a8 40%, #fcd38a 100%);
+    overflow: hidden;
+  }
+  .stage.room {
+    background:
+      linear-gradient(#e8dfff, #f6e8ff),
+      radial-gradient(circle at 50% 90%, #fff7d6 0%, #ffe9a8 40%, #fcd38a 100%);
+  }
+  .stage.park {
+    background:
+      linear-gradient(#dfffd9, #edf7ff),
+      radial-gradient(circle at 50% 90%, #dff7c1 0%, #b9ec8a 50%, #89cf5a 100%);
+  }
+  .stage.bathroom {
+    background:
+      linear-gradient(#d9f0ff, #e6f7ff),
+      radial-gradient(circle at 50% 90%, #c9e9ff 0%, #a3d8ff 50%, #72bfff 100%);
+  }
+
+  .floor {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 40px;
+    background: rgba(255,255,255,.35);
+  }
+
+  .character {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    width: 140px;
+    height: 180px;
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+    transition: left 0.9s ease, bottom 0.3s ease;
+  }
+  .character img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,.15));
+  }
+
+  .character.idle img { animation: breathe 3s ease-in-out infinite; }
+  .character.happy img { animation: happyJump 0.8s ease-in-out infinite; }
+  .character.eating img { animation: eatBob 0.9s ease-in-out infinite; }
+  .character.bathing img { animation: bathWiggle 1.4s ease-in-out infinite; }
+  .character.sleeping img { animation: sleepSway 3s ease-in-out infinite; }
+  .character.playing img { animation: playRun 0.7s ease-in-out infinite; }
+  .character.studying img { animation: studyBob 2s ease-in-out infinite; }
+  .character.drawing img { animation: drawBob 1.8s ease-in-out infinite; }
+  .character.watching img { animation: watchBob 2.2s ease-in-out infinite; }
+  .character.cleaning img { animation: cleanBob 1.5s ease-in-out infinite; }
+  .character.shopping img { animation: shoppingBob 1.6s ease-in-out infinite; }
+  .character.wandering img { animation: wanderBob 1.6s ease-in-out infinite; }
+
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  @keyframes happyJump { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.05); } }
+  @keyframes eatBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @keyframes bathWiggle { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+  @keyframes sleepSway { 0%, 100% { transform: translateX(-50%) rotate(-1deg); } 50% { transform: translateX(-50%) rotate(1deg); } }
+  @keyframes playRun { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+  @keyframes studyBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes drawBob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-3px) rotate(1deg); } }
+  @keyframes watchBob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.02); } }
+  @keyframes cleanBob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-2px) rotate(2deg); } }
+  @keyframes shoppingBob { 0%, 100% { transform: translateY(0) translateX(-50%); } 50% { transform: translateY(-3px) translateX(-50%); } }
+  @keyframes wanderBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+  .chat-bubble {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    color: #444;
+    max-width: 86%;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    z-index: 2;
+  }
+  .chat-bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff;
+  }
+
+  .status {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .status-item {
+    background: #faf6ff;
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .status-label {
+    font-size: 12px;
+    color: #7a6fa5;
+    margin-bottom: 4px;
+  }
+  .bar {
+    height: 12px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .bar > div { height: 100%; transition: width 0.3s ease; }
+  .bar-hunger { background: #ffb376; }
+  .bar-clean  { background: #7fd3ff; }
+  .bar-energy { background: #ffdd67; }
+  .bar-mood   { background: #b592ff; }
+
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .btn-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .btn-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  button {
+    border: none;
+    padding: 9px 6px;
+    border-radius: 10px;
+    background: #b19cd9;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #957bc4; }
+  button:active { opacity: 0.8; }
+
+  .scene-btn { background: #7bb3d9; }
+  .scene-btn:hover { background: #5f9bc4; }
+
+  .study-btn { background: #8bbf6b; }
+  .study-btn:hover { background: #6fa552; }
+
+  .draw-btn { background: #f2a96b; }
+  .draw-btn:hover { background: #d98a4a; }
+
+  .activity-btn { background: #7aaad9; }
+  .activity-btn:hover { background: #5f8bc4; }
+
+  .food-category {
+    font-size: 13px;
+    color: #6b4f9b;
+    margin: 14px 0 6px;
+    font-weight: bold;
+  }
+
+  .chat { margin-top: 14px; }
+  #talkInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .chat-log {
+    max-height: 160px;
+    overflow-y: auto;
+    background: #faf6ff;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .msg {
+    padding: 7px 10px;
+    background: #fff;
+    border-radius: 8px;
+    margin: 4px 0;
+    font-size: 13px;
+    color: #444;
+  }
+  .msg.you { background: #e9f2ff; }
+  .msg.pet { background: #f3ecff; }
+
+  .activity-tip {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+  }
+
+  .art-panel {
+    margin-top: 15px;
+    background: #fffbf0;
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .art-title {
+    font-size: 14px;
+    color: #c2792b;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  #artCanvas {
+    border: 1px solid #e8d9c2;
+    background: #fff;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+  .art-text {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>祁煜的养成小屋</h2>
+
+  <div class="stage room" id="stage">
+    <div class="chat-bubble" id="bubble">哈喽，我是祁煜，快来陪我玩吧~</div>
+    <div class="character idle" id="character">
+      <!-- 固定形象，用户无法修改 -->
+      <img id="charImg" src="qiyu.png" alt="祁煜形象" />
+    </div>
+    <div class="floor"></div>
+  </div>
+
+  <div class="status">
+    <div class="status-item">
+      <div class="status-label">饥饿</div>
+      <div class="bar"><div class="bar-hunger" id="hungerBar"></div></div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">干净度</div>
+      <div class="bar"><div class="bar-clean" id="cleanBar"></div></div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">精力</div>
+      <div class="bar"><div class="bar-energy" id="energyBar"></div></div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">心情</div>
+      <div class="bar"><div class="bar-mood" id="moodBar"></div></div>
+    </div>
+  </div>
+
+  <div class="btn-row btn-row-3">
+    <button class="scene-btn" onclick="changeScene('room')">🏠 房间</button>
+    <button class="scene-btn" onclick="changeScene('park')">🌳 公园</button>
+    <button class="scene-btn" onclick="changeScene('bathroom')">🛁 浴室</button>
+  </div>
+
+  <div class="btn-row">
+    <button onclick="bath()">🛁 洗澡</button>
+    <button onclick="sleep()">😴 睡觉</button>
+    <button onclick="play()">🌳 出去玩</button>
+    <button class="study-btn" onclick="study()">📚 学习</button>
+    <button class="draw-btn" onclick="draw()">🎨 画画</button>
+    <button onclick="talkToSelf()">💬 闲聊</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="activity-btn" onclick="watchTv()">📺 看电视</button>
+    <button class="activity-btn" onclick="cleanRoom()">🧹 打扫卫生</button>
+    <button class="activity-btn" onclick="goShopping()">🛒 购物</button>
+  </div>
+
+  <div class="food-category">🍽️ 主食正餐</div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('melonYogurt')">蜜瓜酸奶</button>
+    <button onclick="eat('cheesePorkRice')">芝士焗猪扒饭</button>
+    <button onclick="eat('milkNoodles')">牛奶拌面</button>
+    <button onclick="eat('lemonFish')">柠檬鱼</button>
+  </div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('curryCrab')">咖哩蟹</button>
+    <button onclick="eat('crabTofu')">蟹粉豆腐</button>
+    <button onclick="eat('shrimpPatty')">炸虾饼</button>
+    <button onclick="eat('cornShrimpDumpling')">玉米虾仁饺子</button>
+  </div>
+
+  <div class="food-category">🥣 汤类</div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('crucianCarpTofuSoup')">鲫鱼豆腐汤</button>
+    <button onclick="eat('mushroomSoup')">奶油蘑菇汤</button>
+    <button onclick="eat('seafoodPorridge')">海鲜粥</button>
+    <button onclick="eat('seafoodPot')">海鲜焖锅</button>
+  </div>
+
+  <div class="food-category">🥤 奶茶饮品</div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('tea')">茶</button>
+    <button onclick="eat('milkTea')">奶茶</button>
+    <button onclick="eat('hotMilk')">热牛奶</button>
+    <button onclick="eat('cocoaMilk')">可可牛奶</button>
+  </div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('coffeeMilk')">咖啡牛奶</button>
+    <button onclick="eat('grapeMilk')">葡萄牛奶</button>
+    <button onclick="eat('redBeanMilk')">红豆牛奶</button>
+    <button onclick="eat('strawberryMilk')">草莓牛奶</button>
+  </div>
+
+  <div class="food-category">🍰 甜品冰淇淋</div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('strawberryCake')">草莓蛋糕</button>
+    <button onclick="eat('cocoaCake')">可可奶油蛋糕</button>
+    <button onclick="eat('cheeseCake')">芝士蛋糕</button>
+    <button onclick="eat('cheeseStick')">奶酪棒</button>
+  </div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('cocoaIceCream')">可可冰淇淋</button>
+    <button onclick="eat('grapeIceCream')">葡萄冰淇淋</button>
+    <button onclick="eat('coffeeIceCream')">咖啡冰淇淋</button>
+    <button onclick="eat('mangoIceCream')">芒果冰淇淋</button>
+  </div>
+  <div class="btn-row btn-row-4">
+    <button onclick="eat('chips')">薯片</button>
+  </div>
+
+  <div class="btn-row">
+    <button onclick="saveGame()">💾 保存</button>
+    <button onclick="resetGame()">🔄 重置</button>
+  </div>
+
+  <div class="art-panel">
+    <div class="art-title">🎨 祁煜的画作</div>
+    <canvas id="artCanvas" width="220" height="160"></canvas>
+    <div class="art-text" id="artDesc">还没有画画，快去让祁煜创作吧！</div>
+  </div>
+
+  <div class="chat">
+    <input id="talkInput" placeholder="和祁煜说点什么吧..." />
+    <button style="width:100%" onclick="chatSend()">💬 发送对话</button>
+    <div class="chat-log" id="chatLog"></div>
+  </div>
+
+  <div class="activity-tip" id="activityTip">祁煜安静地待着，等着你...</div>
+</div>
+
+<script>
+  let state = {
+    hunger: 80,
+    clean: 80,
+    energy: 80,
+    mood: 80,
+    scene: "room",
+    studyLevel: 0,
+    drawLevel: 0,
+    lastActiveTime: Date.now()
+  };
+
+  const charImg = document.getElementById("charImg");
+  const character = document.getElementById("character");
+  const stage = document.getElementById("stage");
+  const bubble = document.getElementById("bubble");
+  const activityTip = document.getElementById("activityTip");
+  const canvas = document.getElementById("artCanvas");
+  const ctx = canvas.getContext("2d");
+  const artDescText = document.getElementById("artDesc");
+
+  // ========== 固定名字 ==========
+  const NAME = "祁煜";
+
+  // ========== 食物配置 ==========
+  const foodList = {
+    melonYogurt:         { h: 18, e: 6, m: 12, type: "drink", text: "蜜瓜酸奶冰冰凉凉，清爽又好喝！" },
+    cheesePorkRice:      { h: 34, e: 12, m: 10, type: "main", text: "芝士焗猪扒饭奶香浓郁，吃着好满足！" },
+    milkNoodles:         { h: 28, e: 10, m: 12, type: "main", text: "牛奶拌面香香滑滑的，味道很特别。" },
+    lemonFish:           { h: 26, e: 10, m: 14, type: "main", text: "柠檬鱼酸酸的，特别开胃！" },
+    curryCrab:           { h: 30, e: 12, m: 18, type: "main", text: "咖哩蟹拌饭超香，我吃得好开心！" },
+    crabTofu:            { h: 24, e: 10, m: 14, type: "main", text: "蟹粉豆腐鲜鲜嫩嫩的，入口好舒服。" },
+    shrimpPatty:         { h: 24, e: 12, m: 10, type: "main", text: "炸虾饼酥酥脆脆，好喜欢这个口感！" },
+    cornShrimpDumpling:  { h: 30, e: 12, m: 12, type: "main", text: "玉米虾仁饺子鲜鲜的，一口一个好幸福！" },
+
+    crucianCarpTofuSoup: { h: 26, e: 10, m: 10, type: "soup", text: "鲫鱼豆腐汤暖暖的，喝下去很安心。" },
+    mushroomSoup:        { h: 20, e: 12, m: 12, type: "soup", text: "奶油蘑菇汤浓浓的，好治愈。" },
+    seafoodPorridge:     { h: 28, e: 10, m: 8, type: "soup", text: "海鲜粥暖暖的，胃里很舒服。" },
+    seafoodPot:          { h: 32, e: 14, m: 14, type: "main", text: "海鲜焖锅香喷喷的，太美味啦！" },
+
+    tea:                 { h: 10, e: 10, m: 8, type: "drink", text: "茶清清的，喝完很放松。" },
+    milkTea:             { h: 14, e: 10, m: 16, type: "drink", text: "奶茶甜甜的，心情都变好了！" },
+    hotMilk:             { h: 14, e: 14, m: 10, type: "drink", text: "热牛奶喝下去，整个人都放松了。" },
+    cocoaMilk:           { h: 16, e: 12, m: 14, type: "drink", text: "可可牛奶暖暖的，有点治愈。" },
+    coffeeMilk:          { h: 14, e: 16, m: 12, type: "drink", text: "咖啡牛奶香香的，提神又好喝。" },
+    grapeMilk:           { h: 16, e: 10, m: 18, type: "drink", text: "葡萄牛奶甜甜的，我很喜欢！" },
+    redBeanMilk:         { h: 18, e: 10, m: 16, type: "drink", text: "红豆牛奶香香的，好好喝。" },
+    strawberryMilk:      { h: 16, e: 10, m: 18, type: "drink", text: "草莓牛奶粉粉的，味道好可爱！" },
+
+    strawberryCake:      { h: 26, e: 8, m: 24, type: "dessert", text: "草莓蛋糕甜甜的，吃了心情变好！" },
+    cocoaCake:           { h: 24, e: 8, m: 22, type: "dessert", text: "可可奶油蛋糕苦苦甜甜，太对我胃口了。" },
+    cheeseCake:          { h: 22, e: 8, m: 20, type: "dessert", text: "芝士蛋糕浓浓奶香，好好吃！" },
+    cheeseStick:         { h: 20, e: 8, m: 14, type: "snack", text: "奶酪棒奶味好浓，棒棒哒！" },
+    chips:               { h: 12, e: 4, m: 18, type: "snack", text: "薯片咔嚓咔嚓，真解压！" },
+    cocoaIceCream:       { h: 14, e: 6, m: 20, type: "dessert", text: "可可冰淇淋苦苦甜甜，超好吃！" },
+    grapeIceCream:       { h: 14, e: 6, m: 20, type: "dessert", text: "葡萄冰淇淋冰冰凉凉，好清爽！" },
+    coffeeIceCream:      { h: 14, e: 8, m: 18, type: "dessert", text: "咖啡冰淇淋香香的，一点都不腻。" },
+    mangoIceCream:       { h: 14, e: 6, m: 22, type: "dessert", text: "芒果冰淇淋甜甜糯糯，太喜欢啦！" }
+  };
+
+  // ========== 画作系统 ==========
+  const paintingPool = [
+    { name: "小太阳", desc: "圆圆的太阳，散发暖光", level: 1, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      ctx.fillStyle = "#ffdd44";
+      ctx.beginPath(); ctx.arc(110, 80, 40, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#ffaa22"; ctx.lineWidth = 3;
+      for (let i = 0; i < 8; i++) {
+        let ang = i * Math.PI / 4;
+        ctx.beginPath(); ctx.moveTo(110 + 45 * Math.cos(ang), 80 + 45 * Math.sin(ang));
+        ctx.lineTo(110 + 65 * Math.cos(ang), 80 + 65 * Math.sin(ang)); ctx.stroke();
+      }
+    }},
+    { name: "小花", desc: "一朵粉色的小花", level: 1, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      ctx.strokeStyle = "#44aa44"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(110, 140); ctx.lineTo(110, 80); ctx.stroke();
+      ctx.fillStyle = "#ffb6c1";
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        let ang = i * Math.PI * 2 / 5;
+        ctx.arc(110 + 22 * Math.cos(ang), 80 + 22 * Math.sin(ang), 18, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = "#ffdd33";
+      ctx.beginPath(); ctx.arc(110, 80, 12, 0, Math.PI * 2); ctx.fill();
+    }},
+    { name: "爱心", desc: "满满的爱心送给你", level: 1, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      ctx.fillStyle = "#ff6b81";
+      ctx.beginPath();
+      ctx.moveTo(110, 120);
+      ctx.bezierCurveTo(60, 70, 60, 35, 110, 60);
+      ctx.bezierCurveTo(160, 35, 160, 70, 110, 120);
+      ctx.fill();
+    }},
+    { name: "小房子", desc: "有烟囱的温馨小屋", level: 2, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      ctx.fillStyle = "#f0c8a0"; ctx.fillRect(70, 90, 80, 60);
+      ctx.fillStyle = "#bb5555";
+      ctx.beginPath(); ctx.moveTo(60, 90); ctx.lineTo(110, 40); ctx.lineTo(160, 90); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#8b572a"; ctx.fillRect(95, 110, 30, 40);
+      ctx.fillStyle = "#888"; ctx.fillRect(130, 60, 15, 30);
+    }},
+    { name: "云朵彩虹", desc: "天上飘着彩色的彩虹", level: 3, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      const colors = ["#ff4444", "#ffaa22", "#ffff44", "#44dd44", "#44aaff", "#9966ff"];
+      for (let i = 0; i < 6; i++) {
+        ctx.strokeStyle = colors[i]; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(110, 130, 90 - i * 7, Math.PI, 0); ctx.stroke();
+      }
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(60, 45, 18, 0, Math.PI * 2); ctx.arc(85, 42, 22, 0, Math.PI * 2);
+      ctx.arc(115, 45, 18, 0, Math.PI * 2); ctx.arc(140, 44, 20, 0, Math.PI * 2); ctx.fill();
+    }},
+    { name: "小人头像", desc: "画了和自己一样的小家伙", level: 4, drawFunc() {
+      ctx.clearRect(0, 0, 220, 160);
+      ctx.fillStyle = "#ffe2c8";
+      ctx.beginPath(); ctx.arc(110, 70, 42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#333";
+      ctx.beginPath(); ctx.arc(95, 65, 4, 0, Math.PI * 2); ctx.arc(125, 65, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(110, 75, 16, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+    }}
+  ];
+
+  function generatePainting() {
+    let avail = paintingPool.filter(p => state.drawLevel >= p.level);
+    if (avail.length === 0) avail = paintingPool.filter(p => p.level === 1);
+    const pick = avail[Math.floor(Math.random() * avail.length)];
+    pick.drawFunc();
+    artDescText.textContent = `画作：${pick.name}｜${pick.desc}`;
+  }
+
+  // ========== 动画控制 ==========
+  function setAnimation(type) {
+    character.className = "character " + type;
+  }
+  function idle() {
+    setAnimation("idle");
+  }
+  function talk(text) {
+    bubble.textContent = text;
+  }
+
+  // ========== 状态渲染 ==========
+  function render() {
+    document.getElementById("hungerBar").style.width = state.hunger + "%";
+    document.getElementById("cleanBar").style.width = state.clean + "%";
+    document.getElementById("energyBar").style.width = state.energy + "%";
+    document.getElementById("moodBar").style.width = state.mood + "%";
+  }
+
+  // ========== 吃饭 ==========
+  function eat(type) {
+    const food = foodList[type];
+    if (!food) return;
+
+    state.hunger = Math.min(100, state.hunger + food.h);
+    state.energy = Math.min(100, state.energy + food.e);
+    state.mood = Math.min(100, state.mood + food.m);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("eating");
+    talk(food.text);
+    render();
+
+    setTimeout(idle, 1800);
+  }
+
+  // ========== 洗澡 ==========
+  function bath() {
+    state.clean = Math.min(100, state.clean + 32);
+    state.mood = Math.min(100, state.mood + 12);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("bathing");
+    talk(`${NAME}洗完香香的，浑身都清爽啦！`);
+    render();
+
+    setTimeout(idle, 2200);
+  }
+
+  // ========== 睡觉 ==========
+  function sleep() {
+    state.energy = Math.min(100, state.energy + 42);
+    state.hunger = Math.max(0, state.hunger - 10);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("sleeping");
+    talk("呼呼...睡一觉起来又有精神啦...");
+    render();
+
+    setTimeout(idle, 2600);
+  }
+
+  // ========== 出去玩 ==========
+  function play() {
+    state.mood = Math.min(100, state.mood + 32);
+    state.hunger = Math.max(0, state.hunger - 14);
+    state.energy = Math.max(0, state.energy - 18);
+    state.clean = Math.max(0, state.clean - 10);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("playing");
+    talk("外面超好玩！我跑得很开心！");
+    render();
+
+    setTimeout(idle, 2000);
+  }
+
+  // ========== 学习 ==========
+  function study() {
+    state.mood = Math.min(100, state.mood + 8);
+    state.energy = Math.max(0, state.energy - 12);
+    state.hunger = Math.max(0, state.hunger - 6);
+    state.studyLevel += 1;
+    state.lastActiveTime = Date.now();
+
+    setAnimation("studying");
+
+    const lines = [
+      "我刚学会了一个新知识，好有成就感！",
+      "学习虽然有点累，但我觉得很充实。",
+      "多看点东西，我会变得更厉害。",
+      "今天也在努力进步中！"
+    ];
+    talk(lines[Math.floor(Math.random() * lines.length)]);
+    render();
+
+    setTimeout(idle, 2400);
+  }
+
+  // ========== 画画 ==========
+  function draw() {
+    state.mood = Math.min(100, state.mood + 12);
+    state.energy = Math.max(0, state.energy - 10);
+    state.hunger = Math.max(0, state.hunger - 4);
+    state.drawLevel += 1;
+    state.lastActiveTime = Date.now();
+
+    setAnimation("drawing");
+    talk("画画...");
+    render();
+    generatePainting();
+
+    setTimeout(idle, 2400);
+  }
+
+  // ========== 看电视 ==========
+  function watchTv() {
+    state.mood = Math.min(100, state.mood + 14);
+    state.energy = Math.max(0, state.energy - 6);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("watching");
+
+    const lines = [
+      "这个节目好有意思，陪我一起看嘛。",
+      "看电视放松一下，感觉真好。",
+      "我在追一个很有趣的故事。",
+      "哈哈，这段太好笑了！"
+    ];
+    talk(lines[Math.floor(Math.random() * lines.length)]);
+    render();
+
+    setTimeout(idle, 2200);
+  }
+
+  // ========== 打扫卫生 ==========
+  function cleanRoom() {
+    state.clean = Math.min(100, state.clean + 18);
+    state.mood = Math.min(100, state.mood + 8);
+    state.energy = Math.max(0, state.energy - 10);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("cleaning");
+
+    const lines = [
+      "我把房间收拾干净啦，舒服多了。",
+      "打扫一下，心情也跟着清爽起来。",
+      "杂物整理好了，看起来顺眼多啦。",
+      "干净的环境会让人安心。"
+    ];
+    talk(lines[Math.floor(Math.random() * lines.length)]);
+    render();
+
+    setTimeout(idle, 2200);
+  }
+
+  // ========== 购物 ==========
+  function goShopping() {
+    state.mood = Math.min(100, state.mood + 16);
+    state.hunger = Math.max(0, state.hunger - 6);
+    state.energy = Math.max(0, state.energy - 8);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("shopping");
+
+    const lines = [
+      "我买了好多喜欢的东西，好开心！",
+      "逛街真有意思，就是有点累。",
+      "看到好吃的就忍不住想买。",
+      "今天的收获很不错呢！"
+    ];
+    talk(lines[Math.floor(Math.random() * lines.length)]);
+    render();
+
+    setTimeout(idle, 2200);
+  }
+
+  // ========== 闲聊 ==========
+  function talkToSelf() {
+    state.mood = Math.min(100, state.mood + 6);
+    state.lastActiveTime = Date.now();
+
+    setAnimation("happy");
+
+    const lines = [
+      "嘿嘿，今天天气看起来不错。",
+      "我在想晚上吃什么呢...",
+      "要是能一直开开心心就好了。",
+      "你觉得我今天可爱吗？"
+    ];
+    talk(lines[Math.floor(Math.random() * lines.length)]);
+    render();
+
+    setTimeout(idle, 1600);
+  }
+
+  // ========== 场景切换 ==========
+  function changeScene(sceneName) {
+    state.scene = sceneName;
+    stage.classList.remove("room", "park", "bathroom");
+    stage.classList.add(sceneName);
+
+    if (sceneName === "room") {
+      talk("回到温暖的房间啦，这里让我很安心。");
+    } else if (sceneName === "park") {
+      talk("来到公园啦，空气好新鲜！");
+    } else if (sceneName === "bathroom") {
+      talk("浴室里暖暖的，准备洗个澡咯。");
+    }
+  }
+
+  // ========== 主动活动：频率降低，持续时间拉长 ==========
+  const randomActivities = [
+    {
+      name: "bathing",
+      tip: `${NAME}在慢慢洗澡...`,
+      talk: "我自己洗了个澡，现在香香的。",
+      duration: 3500,
+      apply() {
+        state.clean = Math.min(100, state.clean + 10);
+        state.mood = Math.min(100, state.mood + 4);
+      }
+    },
+    {
+      name: "drawing",
+      tip: `${NAME}在安静地画画...`,
+      talk: "画画...",
+      duration: 3800,
+      apply() {
+        state.drawLevel += 1;
+        state.mood = Math.min(100, state.mood + 3);
+        generatePainting();
+      }
+    },
+    {
+      name: "watching",
+      tip: `${NAME}在安静看电视...`,
+      talk: "这个节目还挺有意思的。",
+      duration: 3500,
+      apply() {
+        state.mood = Math.min(100, state.mood + 4);
+        state.energy = Math.max(0, state.energy - 1);
+      }
+    },
+    {
+      name: "cleaning",
+      tip: `${NAME}在慢慢打扫...`,
+      talk: "我顺手整理了一下房间。",
+      duration: 3600,
+      apply() {
+        state.clean = Math.min(100, state.clean + 6);
+        state.mood = Math.min(100, state.mood + 2);
+      }
+    },
+    {
+      name: "shopping",
+      tip: `${NAME}在慢悠悠购物...`,
+      talk: "我刚刚脑补了一圈购物清单。",
+      duration: 3400,
+      apply() {
+        state.mood = Math.min(100, state.mood + 4);
+      }
+    },
+    {
+      name: "studying",
+      tip: `${NAME}在安静学习...`,
+      talk: "我自己也会偷偷学习哦。",
+      duration: 3500,
+      apply() {
+        state.studyLevel += 1;
+        state.energy = Math.max(0, state.energy - 1);
+      }
+    },
+    {
+      name: "happy",
+      tip: `${NAME}偶尔开心一下...`,
+      talk: "嘿嘿，突然心情变好了！",
+      duration: 2000,
+      apply() {
+        state.mood = Math.min(100, state.mood + 3);
+      }
+    },
+    {
+      name: "wandering",
+      tip: `${NAME}在慢悠悠溜达...`,
+      talk: "我自己溜达一下，活动活动身体。",
+      duration: 3200,
+      apply() {
+        state.energy = Math.max(0, state.energy - 1);
+        state.mood = Math.min(100, state.mood + 1);
+      }
+    }
+  ];
+
+  let activityCooldown = false;
+
+  function startRandomActivity() {
+    if (activityCooldown) return;
+
+    const now = Date.now();
+    const idleTime = now - state.lastActiveTime;
+
+    // 超过 20 秒不操作才主动活动一次
+    if (idleTime < 20000) {
+      activityTip.textContent = `${NAME}安静地待着，等着你...`;
+      return;
+    }
+
+    activityCooldown = true;
+
+    const act = randomActivities[Math.floor(Math.random() * randomActivities.length)];
+
+    setAnimation(act.name);
+    talk(act.talk);
+    activityTip.textContent = act.tip;
+
+    if (act.apply) act.apply();
+    render();
+
+    setTimeout(() => {
+      idle();
+      activityTip.textContent = `${NAME}安静地待着，等着你...`;
+      activityCooldown = false;
+    }, act.duration);
+  }
+
+  // 主动活动检查频率也降低到 10 秒一次
+  setInterval(startRandomActivity, 10000);
+
+  // ========== 长时间未操作：思念对话 ==========
+  function startLongIdleCheck() {
+    setInterval(() => {
+      const now = Date.now();
+      const idleTime = now - state.lastActiveTime;
+
+      if (idleTime > 60000) {
+        const lines = [
+          "你去哪里了？我有点想你了...",
+          "已经好久没看到你了，会不会忘了我呀？",
+          "我一直在等你回来陪我。",
+          "外面好玩吗？什么时候回来呀？",
+          "没有你陪我，我有一点点孤单。",
+          "我把画都画好了，就等你来看了。",
+          "你是不是在忙呀？忙完记得回来找我。",
+          "我会乖乖的，你不要走太久好不好？"
+        ];
+        talk(lines[Math.floor(Math.random() * lines.length)]);
+      }
+    }, 12000);
+  }
+
+  startLongIdleCheck();
+
+  // ========== 对话系统 ==========
+  function chatSend() {
+    const input = document.getElementById("talkInput");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const log = document.getElementById("chatLog");
+    log.innerHTML += `<div class="msg you">你：${text}</div>`;
+    input.value = "";
+
+    let reply;
+    const lower = text.toLowerCase();
+
+    if (lower.includes("你好") || lower.includes("哈喽") || lower.includes("hi")) {
+      reply = `${NAME}一直都在等你呀。`;
+    } else if (lower.includes("名字")) {
+      reply = "我叫祁煜呀，你可不许忘记。";
+    } else if (lower.includes("画画") || lower.includes("画") || lower.includes("艺术")) {
+      reply = "我喜欢画画，颜色能表达好多心情。";
+    } else if (lower.includes("学习") || lower.includes("看书") || lower.includes("知识")) {
+      reply = "学习让我觉得很充实，我想变得更厉害一点！";
+    } else if (lower.includes("看电视") || lower.includes("电视") || lower.includes("节目")) {
+      reply = "我很喜欢看电视，放松的时候最舒服了。";
+    } else if (lower.includes("打扫") || lower.includes("干净") || lower.includes("卫生")) {
+      reply = "我会把环境收拾干净，这样住着也安心。";
+    } else if (lower.includes("购物") || lower.includes("买东西") || lower.includes("逛街")) {
+      reply = "逛街超开心的，看到好吃的就走不动路。";
+    } else if (lower.includes("开心")) {
+      reply = "和你在一起的时候，我总是比较开心。";
+    } else if (lower.includes("饿")) {
+      reply = "肚子咕咕叫，想吃点好吃的。";
+    } else if (lower.includes("累") || lower.includes("困")) {
+      reply = "我有点累了，想休息一下。";
+    } else if (lower.includes("洗澡")) {
+      reply = "洗完澡会干干净净、舒舒服服的。";
+    } else if (lower.includes("出去玩") || lower.includes("公园")) {
+      reply = "好呀！出去走走心情会变好。";
+    } else if (lower.includes("喜欢我")) {
+      reply = "当然喜欢你啦！你是我最重要的人。";
+    } else if (lower.includes("难过") || lower.includes("不开心")) {
+      reply = "别难过啦，有什么事可以慢慢告诉我。";
+    } else if (lower.includes("晚安")) {
+      reply = "晚安！明天也要记得来看我哦。";
+    } else if (lower.includes("早安")) {
+      reply = "早上好！新的一天开始啦！";
+    } else if (lower.includes("再见") || lower.includes("拜拜")) {
+      reply = "拜拜，不要离开太久，我会想你的。";
+    } else if (lower.includes("想你") || lower.includes("思念")) {
+      reply = "我也很想你，所以一直在这里等你。";
+    } else if (lower.includes("吃") || lower.includes("食物")) {
+      reply = "我想吃的东西好多，奶茶、蛋糕、冰淇淋都喜欢！";
+    } else {
+      reply = "嗯嗯，我在认真听你说话。";
+    }
+
+    talk(reply);
+    log.innerHTML += `<div class="msg pet">${NAME}：${reply}</div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // ========== 状态自然衰减 ==========
+  setInterval(() => {
+    state.hunger = Math.max(0, state.hunger - 0.25);
+    state.clean = Math.max(0, state.clean - 0.18);
+    state.energy = Math.max(0, state.energy - 0.22);
+    state.mood = Math.max(0, state.mood - 0.14);
+    render();
+
+    if (state.hunger < 15) talk("呜呜，我好饿，快喂我吃饭！");
+    else if (state.clean < 15) talk("身上脏脏的，我想洗澡。");
+    else if (state.energy < 15) talk("好累，我想睡觉...");
+    else if (state.mood < 20) talk("我有点无聊，陪我聊聊天好不好？");
+  }, 1000);
+
+  // ========== 存档与读档 ==========
+  function saveGame() {
+    localStorage.setItem("petState", JSON.stringify(state));
+    talk("游戏已保存，我会在这里等你回来。");
+  }
+
+  function loadGame() {
+    const savedState = localStorage.getItem("petState");
+
+    if (savedState) {
+      state = JSON.parse(savedState);
+    }
+    render();
+    changeScene(state.scene);
+
+    if (state.drawLevel > 0) generatePainting();
+  }
+
+  function resetGame() {
+    if (!confirm("确定要重置祁煜的数据吗？存档会被清空。")) return;
+    localStorage.removeItem("petState");
+    state = {
+      hunger: 80,
+      clean: 80,
+      energy: 80,
+      mood: 80,
+      scene: "room",
+      studyLevel: 0,
+      drawLevel: 0,
+      lastActiveTime: Date.now()
+    };
+    ctx.clearRect(0, 0, 220, 160);
+    artDescText.textContent = "还没有画画，快去让祁煜创作吧！";
+    render();
+    changeScene("room");
+    talk("我重新来过啦，很高兴认识你！");
+  }
+
+  // ========== 初始化 ==========
+  loadGame();
+  idle();
+  render();
+</script>
+
+</body>
+</html>
